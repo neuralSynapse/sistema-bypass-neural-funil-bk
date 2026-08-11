@@ -1,0 +1,210 @@
+,7,8,.94);backdrop-filter:blur(14px);padding-left:4px;padding-right:4px}.bk-save-state{font-size:.66rem;max-width:160px}.bk-actions .bk-btn{width:100%}.bk-price{font-size:5.2rem}
+}
+@media(max-width:380px){.bk-main{width:min(calc(100% - 20px),var(--bk-max))}.bk-option{padding:12px 11px;grid-template-columns:30px 1fr 16px;gap:8px}.bk-letter{width:29px;height:29px}.bk-ipac{grid-template-columns:1fr}.bk-card{padding:20px}.bk-title{font-size:2.55rem}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+</style>
+
+  <!-- Meta Pixel: ID oficial do Funil BK -->
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init','341131507668987');
+    fbq('track','PageView');
+  </script>
+</head>
+<body>
+  <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=341131507668987&ev=PageView&noscript=1"></noscript>
+
+  <div class="bk-app" id="bkApp">
+    <header class="bk-topbar">
+      <a class="bk-brand" href="#" id="brandHome" aria-label="Sistema Bypass Neural, voltar ao início">
+        <span class="bk-brand-mark" aria-hidden="true">BN</span>
+        <span>Sistema Bypass Neural</span>
+      </a>
+      <div class="bk-phase" id="phaseLabel">Diagnóstico</div>
+    </header>
+
+    <div class="bk-progress-wrap" id="progressWrap" aria-hidden="true">
+      <div class="bk-progress"><span id="progressBar"></span></div>
+    </div>
+
+    <main class="bk-main" id="main" tabindex="-1">
+      <section class="bk-screen" id="screen" aria-live="polite"></section>
+    </main>
+
+    <nav class="bk-bottom-nav" id="bottomNav" hidden aria-label="Navegação do diagnóstico">
+      <button class="bk-back" id="backButton" type="button">← Voltar</button>
+      <span class="bk-save-state">Progresso salvo neste dispositivo</span>
+    </nav>
+  </div>
+
+  <script>
+(() => {
+  'use strict';
+
+  const STORAGE_KEY = 'bypassBK_v1';
+  const CHECKOUT_BASE = 'https://pay.hotmart.com/A98424225S?bid=1773208589822&checkoutMode=10&off=njqo49xj';
+  const META_PIXEL_ID = '341131507668987';
+  const TRACK_PARAMS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','fbclid'];
+  const AXES = ['diagnosticoFraco','valorDifuso','objecaoReativa','fechamentoAberto'];
+  const AXIS_LABELS = {
+    diagnosticoFraco: 'DIAGNÓSTICO FRACO',
+    valorDifuso: 'VALOR DIFUSO',
+    objecaoReativa: 'OBJEÇÃO REATIVA',
+    fechamentoAberto: 'FECHAMENTO ABERTO'
+  };
+  const AXIS_SHORT = {
+    diagnosticoFraco: 'Diagnóstico',
+    valorDifuso: 'Valor',
+    objecaoReativa: 'Objeções',
+    fechamentoAberto: 'Fechamento'
+  };
+  const AXIS_PRIORITY = ['diagnosticoFraco','valorDifuso','objecaoReativa','fechamentoAberto'];
+
+  const screen = document.getElementById('screen');
+  const main = document.getElementById('main');
+  const bottomNav = document.getElementById('bottomNav');
+  const backButton = document.getElementById('backButton');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressBar = document.getElementById('progressBar');
+  const phaseLabel = document.getElementById('phaseLabel');
+  const brandHome = document.getElementById('brandHome');
+
+  window.dataLayer = window.dataLayer || [];
+
+  const uid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,9)}`;
+  const escapeHtml = (value='') => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+  function freshState(preserveParams = {}) {
+    return {
+      version: 1,
+      step: 0,
+      answers: {},
+      context: {},
+      result: null,
+      params: preserveParams,
+      sessionId: uid(),
+      firedEvents: {},
+      startedAt: null,
+      completedAt: null
+    };
+  }
+
+  function loadState() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (_) {}
+    if (!saved || saved.version !== 1 || typeof saved.step !== 'number') saved = freshState();
+    saved.answers ||= {};
+    saved.context ||= {};
+    saved.params ||= {};
+    saved.firedEvents ||= {};
+    saved.sessionId ||= uid();
+    const incoming = new URLSearchParams(location.search);
+    TRACK_PARAMS.forEach(key => {
+      const value = incoming.get(key);
+      if (value) saved.params[key] = value;
+    });
+    return saved;
+  }
+
+  let state = loadState();
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+  }
+
+  function pushDataLayer(name, payload={}) {
+    window.dataLayer.push({ event: name, bk_session_id: state.sessionId, ...payload });
+  }
+
+  function fireOnce(name, payload={}, standard=false) {
+    const key = `${state.sessionId}:${name}`;
+    if (state.firedEvents[key]) return;
+    state.firedEvents[key] = true;
+    saveState();
+    pushDataLayer(name, payload);
+    if (typeof window.fbq === 'function') {
+      try {
+        if (standard) window.fbq('track', name, payload);
+        else window.fbq('trackCustom', name, payload);
+      } catch (_) {}
+    }
+  }
+
+  function trackAction(name, payload={}, standard=false) {
+    pushDataLayer(name, payload);
+    if (typeof window.fbq === 'function') {
+      try {
+        if (standard) window.fbq('track', name, payload);
+        else window.fbq('trackCustom', name, payload);
+      } catch (_) {}
+    }
+  }
+
+  const q = (id, kicker, question, helper, options, meta={}) => ({ type:'question', id, kicker, question, helper, options, ...meta });
+  const o = (label, value, scores={}, manifestations={}) => ({ label, value, scores, manifestations });
+
+  const steps = [
+    { type:'entry' },
+    { type:'editorial1' },
+    q('sellType','Contexto comercial','O que você vende hoje?','Isso personaliza os exemplos do diagnóstico sem alterar a lógica de classificação.',[
+      o('Serviços','servicos'),o('Produtos','produtos'),o('Consultoria ou mentoria','consultoria'),o('Saúde ou estética','saude'),o('Educação','educacao'),o('Imóveis','imoveis'),o('Outro','outro')
+    ],{allowOther:true,otherPlaceholder:'Descreva em poucas palavras o que você vende'}),
+    q('channel','Contexto comercial','Como normalmente acontece a venda?','Escolha o canal predominante. Se usa vários, selecione “combinação de canais”.',[
+      o('WhatsApp','whatsapp'),o('Ligação','ligacao'),o('Reunião','reuniao'),o('Presencial','presencial'),o('Direct','direct'),o('Página ou funil','funil'),o('Combinação de canais','combinacao')
+    ]),
+    q('ticket','Contexto comercial','Qual é o ticket aproximado da sua oferta?','A faixa ajuda a ajustar exemplos de decisão e follow-up.',[
+      o('Até R$100','ate100'),o('R$100 a R$500','100a500'),o('R$500 a R$2.000','500a2000'),o('R$2.000 a R$5.000','2000a5000'),o('Acima de R$5.000','acima5000')
+    ],{completeEvent:'BK_ContextComplete'}),
+    { type:'contextSummary' },
+    { type:'prepare' },
+    q('opening','Abertura da conversa','Quando um potencial cliente chega, o que normalmente acontece primeiro?','Marque o padrão mais frequente, não a exceção bonita.',[
+      o('Entendo o contexto antes de falar da solução.','contexto_primeiro',{},{}),
+      o('Faço algumas perguntas, mas logo começo a explicar.','perguntas_depois_explica',{diagnosticoFraco:1,valorDifuso:1},{diagnosticoFraco:'Você começa a explicar antes de terminar de entender o contexto.'}),
+      o('Normalmente apresento o produto ou serviço primeiro.','produto_primeiro',{diagnosticoFraco:3,valorDifuso:2},{diagnosticoFraco:'A solução entra antes de o problema e o critério de decisão estarem claros.',valorDifuso:'O valor é apresentado antes de existir um critério do cliente para ancorá-lo.'}),
+      o('Depende da conversa. Não tenho uma sequência clara.','sem_sequencia',{diagnosticoFraco:2,fechamentoAberto:1},{diagnosticoFraco:'A abertura depende de improvisação e muda sem um critério claro.'})
+    ],{weight:3,completeEvent:'BK_OpeningComplete'}),
+    q('diagnosis','Diagnóstico','Antes de recomendar sua solução, quanto você realmente entende do problema do cliente?','O objetivo não é fazer mais perguntas. É entender o suficiente antes de propor.',[
+      o('Entendo situação, problema, impacto, prioridade e critério de decisão.','completo',{},{}),
+      o('Entendo situação e problema, mas nem sempre impacto e prioridade.','parcial',{diagnosticoFraco:1},{diagnosticoFraco:'Impacto e prioridade ficam implícitos, então parte da decisão ainda é adivinhada.'}),
+      o('Faço algumas perguntas, mas avanço quando já tenho uma ideia da solução.','algumas',{diagnosticoFraco:2},{diagnosticoFraco:'Você avança com hipótese de solução antes de fechar as informações que sustentam a decisão.'}),
+      o('Pergunto o que precisa e normalmente já apresento a solução.','necessidade_solução',{diagnosticoFraco:3,valorDifuso:1},{diagnosticoFraco:'Necessidade é identificada, mas impacto, prioridade e critério ficam de fora.'}),
+      o('Quase sempre explico primeiro e entendo detalhes depois.','explica_primeiro',{diagnosticoFraco:3,valorDifuso:2},{diagnosticoFraco:'O diagnóstico acontece depois da apresentação, quando deveria orientar o que será apresentado.'})
+    ],{weight:5,completeEvent:'BK_DiagnosisComplete'}),
+    { type:'partialSynthesis' },
+    q('value','Construção de valor','Quando explica sua solução, como você costuma construir valor?','Valor forte nasce do que o cliente acabou de revelar, não de uma lista decorada.',[
+      o('Conecto diretamente a solução ao que o cliente acabou de dizer.','conecta',{},{}),
+      o('Apresento benefícios relevantes, mas nem sempre ligados às palavras do cliente.','relevantes_gerais',{valorDifuso:1},{valorDifuso:'Os benefícios são relevantes, mas a ligação com o critério declarado nem sempre fica explícita.'}),
+      o('Listo benefícios gerais que costumam funcionar.','lista_beneficios',{valorDifuso:2},{valorDifuso:'A apresentação usa benefícios gerais e deixa o cliente fazer sozinho a conexão com o próprio problema.'}),
+      o('Explico muitas características para mostrar tudo que a solução entrega.','caracteristicas',{valorDifuso:3},{valorDifuso:'Excesso de características dilui o ponto que realmente justificaria a decisão.'}),
+      o('Improviso conforme a conversa.','improvisa',{valorDifuso:2,diagnosticoFraco:1},{valorDifuso:'O valor muda conforme o improviso, sem uma estrutura consistente de conexão.'})
+    ],{weight:5,completeEvent:'BK_ValueComplete'}),
+    q('price','Momento do preço','Quando chega a hora de apresentar o preço, o que mais se parece com você?','Preço não é só um número. O que vem antes e depois dele muda a clareza da decisão.',[
+      o('Apresento depois de construir contexto e valor.','depois_valor',{},{}),
+      o('Explico demais antes de finalmente falar o preço.','explica_demais',{valorDifuso:1,objecaoReativa:1},{valorDifuso:'A apresentação se alonga e o valor central perde nitidez antes do preço.'}),
+      o('Fico desconfortável e tento justificar o valor.','justifica',{valorDifuso:2,objecaoReativa:1},{valorDifuso:'A justificativa excessiva pode sinalizar insegurança e deslocar a conversa para defesa de preço.'}),
+      o('Ofereço desconto ou condição cedo para facilitar.','desconto_cedo',{valorDifuso:2,objecaoReativa:2},{objecaoReativa:'A condição comercial entra antes de ficar claro qual objeção realmente existe.'}),
+      o('Envio o valor e espero a resposta.','envia_espera',{fechamentoAberto:2,valorDifuso:1},{fechamentoAberto:'O preço vira o último movimento e a decisão fica sem próximo passo combinado.'})
+    ],{weight:3,completeEvent:'BK_PriceComplete'}),
+    q('goal','Direção desejada','Qual mudança mais faria diferença nas suas próximas conversas?','Isso orienta o primeiro ajuste que aparecerá no resultado.',[
+      o('Entender melhor antes de apresentar','melhor_diagnostico'),o('Construir valor com mais clareza','melhor_valor'),o('Lidar melhor com objeções','melhor_objecao'),o('Concluir com próximo passo claro','melhor_fechamento')
+    ]),
+    { type:'editorial2' },
+    { type:'authority' },
+    { type:'practiceProof' },
+    { type:'mechanism' },
+    q('expensive','Objeção','Quando o cliente diz “está caro”, o que você tende a fazer primeiro?','A primeira reação mostra se você investiga a causa ou já entra em defesa.',[
+      o('Investigo o que ele está comparando ou qual percepção está por trás.','investiga',{},{}),
+      o('Reforço o valor e os benefícios.','reforca',{objecaoReativa:1,valorDifuso:1},{objecaoReativa:'Você responde à frase “está caro” antes de confirmar o que “caro” significa para aquele cliente.'}),
+      o('Justifico o preço e explico por que custa isso.','justifica_preco',{objecaoReativa:2,valorDifuso:1},{objecaoReativa:'A objeção leva direto à justificativa, sem diagnóstico da comparação ou do risco percebido.'}),
+      o('Ofereço desconto ou condição.','oferece_desconto',{objecaoReativa:3,valorDifuso:2},{objecaoReativa:'Desconto aparece como resposta automática antes de a causa da objeção ser conhecida.'}),
+      o('Fico sem saber como continuar ou respondo na defensiva.','defensiva',{objecaoReativa:3},{objecaoReativa:'A objeção interrompe sua condução e transforma a conversa em reação.'})
+    ],{weight:4}),
+    q('think','Objeção','Quando escuta “vou pensar”, como você conduz?','“Vou pensar” pode esconder critérios diferentes. O trabalho é tornar o que falta decidível.',[
+      o('Entendo exatamente o que ainda precisa ser decidido.','entende_pendente',{},{}),
+      o('Pergunto se ficou alguma dúvida.','duvida',{objecaoReativa:1,fechamentoAberto:1},{objecaoReativa:'A pergunta busca uma dúvida genérica, mas não necessariamente o critério que ainda impede a decisão.'}),
+      o('Mando um resumo e aguardo.','resumo_aguarda',{fechamentoAberto:2},{fechamen
