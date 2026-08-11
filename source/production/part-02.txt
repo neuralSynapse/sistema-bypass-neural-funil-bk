@@ -1,0 +1,192 @@
+toAberto:'Você entrega informação, mas não combina como e quando a decisão será retomada.'}),
+      o('Digo “beleza, qualquer coisa me chama”.','qualquer_coisa',{fechamentoAberto:3,objecaoReativa:1},{fechamentoAberto:'A conversa termina sem decisão, condição de retomada ou próximo passo.'})
+    ],{weight:5}),
+    q('someone','Objeção','Quando o cliente diz “preciso falar com alguém”, o que você faz?','Mapear participantes e critérios evita que a proposta seja repassada sem contexto de decisão.',[
+      o('Identifico quem participa, o critério dessa pessoa e quando a decisão volta.','mapeia',{},{}),
+      o('Peço para conversar e depois me dar um retorno.','pede_retorno',{fechamentoAberto:1,objecaoReativa:1},{fechamentoAberto:'O retorno fica delegado ao cliente, sem um marco combinado.'}),
+      o('Envio mais informações para ele repassar.','envia_info',{valorDifuso:1,fechamentoAberto:2},{fechamentoAberto:'Mais informação é enviada, mas o processo de decisão continua sem estrutura.'}),
+      o('Aguardo a pessoa voltar.','aguarda',{fechamentoAberto:3},{fechamentoAberto:'A continuidade fica totalmente passiva.'})
+    ],{weight:3}),
+    q('now','Objeção','Quando o cliente diz “agora não”, como você conduz?','Timing pode ser real. O ponto é entender a condição de retomada, não fabricar urgência.',[
+      o('Entendo o motivo, a condição para retomar e combino um próximo passo.','condicao_retomada',{},{}),
+      o('Pergunto quando seria um momento melhor.','quando_melhor',{fechamentoAberto:1},{fechamentoAberto:'Existe intenção de retomar, mas falta esclarecer o que precisa mudar para a conversa fazer sentido.'}),
+      o('Tento mostrar por que deveria agir agora.','cria_urgencia',{objecaoReativa:2},{objecaoReativa:'A objeção de timing leva a argumentação antes de a causa ser compreendida.'}),
+      o('Deixo a porta aberta para ele voltar quando quiser.','porta_aberta',{fechamentoAberto:2},{fechamentoAberto:'A retomada fica sem prazo, condição ou responsabilidade.'}),
+      o('Ofereço condição especial para decidir logo.','condicao_especial',{objecaoReativa:3,fechamentoAberto:1},{objecaoReativa:'Pressão ou condição comercial substitui a investigação do motivo real do “agora não”.'})
+    ],{weight:3,completeEvent:'BK_ObjectionsComplete'}),
+    q('followup','Follow-up','Quando o cliente não decide na hora, como você retoma a conversa?','Follow-up forte recupera contexto e decisão pendente. Follow-up fraco só pergunta se a pessoa viu.',[
+      o('Retomo com base no combinado e avanço para o próximo passo.','combinado',{},{}),
+      o('Envio uma mensagem contextualizada depois.','contextualizada',{fechamentoAberto:1},{fechamentoAberto:'O contexto é retomado, mas nem sempre há uma ação concreta ou data combinada.'}),
+      o('Pergunto se conseguiu pensar.','pensou',{fechamentoAberto:2},{fechamentoAberto:'O follow-up pede resposta, mas não ajuda a reorganizar a decisão.'}),
+      o('Mando “oi, conseguiu ver?”.','oi_viu',{fechamentoAberto:3,objecaoReativa:1},{fechamentoAberto:'A retomada perde contexto e transfere ao cliente todo o trabalho de reconstruir a conversa.'}),
+      o('Normalmente espero a pessoa voltar.','espera_voltar',{fechamentoAberto:3},{fechamentoAberto:'O processo termina em espera passiva.'})
+    ],{weight:5,completeEvent:'BK_FollowupComplete'}),
+    q('closing','Fechamento','Como suas conversas normalmente terminam quando o cliente ainda não comprou?','A melhor conversa não precisa terminar em compra. Precisa terminar em decisão ou direção.',[
+      o('Com uma decisão clara, mesmo que seja “não”.','decisao_clara',{},{}),
+      o('Com próximo passo e data definidos.','passo_data',{},{}),
+      o('Com acompanhamento combinado, mas sem data fixa.','acompanhamento',{fechamentoAberto:1},{fechamentoAberto:'Existe continuidade, mas o marco de retomada ainda fica frouxo.'}),
+      o('Com “me chama se decidir”.','me_chama',{fechamentoAberto:3},{fechamentoAberto:'A conversa termina sem ação, responsável ou prazo.'}),
+      o('A conversa simplesmente esfria.','esfria',{fechamentoAberto:3},{fechamentoAberto:'A oportunidade se perde sem um encerramento explícito ou próximo passo.'})
+    ],{weight:5,completeEvent:'BK_ClosingComplete'}),
+    { type:'processing' },
+    { type:'result' },
+    { type:'bridge' },
+    { type:'offer' },
+    { type:'checkout' }
+  ];
+
+  const labels = {
+    sellType:{servicos:'Serviços',produtos:'Produtos',consultoria:'Consultoria ou mentoria',saude:'Saúde ou estética',educacao:'Educação',imoveis:'Imóveis',outro:'Outro'},
+    channel:{whatsapp:'WhatsApp',ligacao:'Ligação',reuniao:'Reunião',presencial:'Presencial',direct:'Direct',funil:'Página ou funil',combinacao:'Combinação de canais'},
+    ticket:{ate100:'Até R$100','100a500':'R$100 a R$500','500a2000':'R$500 a R$2.000','2000a5000':'R$2.000 a R$5.000',acima5000:'Acima de R$5.000'},
+    goal:{melhor_diagnostico:'entender melhor antes de apresentar',melhor_valor:'construir valor com mais clareza',melhor_objecao:'lidar melhor com objeções',melhor_fechamento:'concluir com próximo passo claro'}
+  };
+
+  function findQuestion(id){ return steps.find(s => s.type === 'question' && s.id === id); }
+  function selectedOption(id){ const question = findQuestion(id); return question?.options.find(x => x.value === state.answers[id]); }
+
+  function calculateResult(){
+    const totals = Object.fromEntries(AXES.map(a => [a,0]));
+    const weighted = Object.fromEntries(AXES.map(a => [a,0]));
+    const manifestations = Object.fromEntries(AXES.map(a => [a,[]]));
+    steps.filter(s => s.type === 'question').forEach(question => {
+      const option = question.options.find(x => x.value === state.answers[question.id]);
+      if (!option) return;
+      AXES.forEach(axis => {
+        const value = Number(option.scores?.[axis] || 0);
+        totals[axis] += value;
+        weighted[axis] += value * Number(question.weight || 1);
+        const text = option.manifestations?.[axis];
+        if (value > 0 && text) manifestations[axis].push({ value, weight:question.weight||1, text });
+      });
+    });
+    const ranking = [...AXES].sort((a,b) => {
+      if (totals[b] !== totals[a]) return totals[b] - totals[a];
+      if (weighted[b] !== weighted[a]) return weighted[b] - weighted[a];
+      return AXIS_PRIORITY.indexOf(a) - AXIS_PRIORITY.indexOf(b);
+    });
+    const totalSeverity = AXES.reduce((sum,a)=>sum+totals[a],0);
+    const noDominant = totalSeverity === 0;
+    if (noDominant) {
+      const goalAxis = { melhor_diagnostico:'diagnosticoFraco', melhor_valor:'valorDifuso', melhor_objecao:'objecaoReativa', melhor_fechamento:'fechamentoAberto' }[state.answers.goal] || 'diagnosticoFraco';
+      const idx = ranking.indexOf(goalAxis);
+      if (idx > 0) ranking.splice(idx,1);
+      ranking.unshift(goalAxis);
+    }
+    let level;
+    if (totalSeverity >= 22) level = ['Estrutura Inicial','A conversa depende bastante de improvisação e perde direção em vários momentos.'];
+    else if (totalSeverity >= 12) level = ['Estrutura Parcial','Existem boas práticas, mas elas ainda não formam uma sequência consistente.'];
+    else if (totalSeverity >= 5) level = ['Estrutura Funcional','Existe condução razoavelmente clara, com rupturas localizadas.'];
+    else level = ['Estrutura Consolidada','A conversa possui boa sequência, com pontos pontuais de otimização.'];
+    const sortedMan = manifestations[ranking[0]].sort((a,b)=>(b.value*b.weight)-(a.value*a.weight)).map(x=>x.text);
+    return { totals, weighted, primary:ranking[0], secondary:ranking[1], totalSeverity, noDominant, level, manifestations:sortedMan.slice(0,3) };
+  }
+
+  const resultCopy = {
+    diagnosticoFraco:{
+      where:'Você tende a entrar na solução antes de ter informação suficiente para conduzir a decisão.',
+      consequence:'A apresentação passa a depender de suposições. O cliente recebe informação, mas precisa sozinho conectar aquilo que você vende ao problema, ao impacto e à prioridade que ainda não foram totalmente esclarecidos.',
+      adjustment:'Antes de apresentar a solução, obtenha clareza sobre quatro pontos: situação, principal problema, impacto e prioridade. Só então conecte a oferta ao que foi verbalizado.'
+    },
+    valorDifuso:{
+      where:'Você apresenta valor, mas nem sempre ele nasce diretamente do que o cliente acabou de revelar.',
+      consequence:'O cliente pode entender o produto e ainda assim não enxergar por que aquilo importa especificamente para ele. Quando a ligação fica fraca, preço e comparação ganham espaço demais.',
+      adjustment:'Pare de listar benefícios antes de conectar cada benefício a uma necessidade, impacto ou critério verbalizado pelo cliente.'
+    },
+    objecaoReativa:{
+      where:'A objeção está fazendo você responder antes de entender o que realmente precisa ser resolvido.',
+      consequence:'A conversa pode virar defesa, explicação, desconto ou tentativa de convencimento. Quanto mais rápido você reage, menos informação obtém sobre comparação, risco, timing e critério de decisão.',
+      adjustment:'Antes de responder à objeção, identifique o que exatamente o cliente está comparando, temendo ou tentando decidir. Responda somente ao ponto confirmado.'
+    },
+    fechamentoAberto:{
+      where:'Sua conversa frequentemente termina sem uma decisão ou próximo passo claramente combinado.',
+      consequence:'Bons potenciais clientes entram em follow-ups vagos ou desaparecem porque a continuidade ficou sem ação, responsável, prazo ou condição de retomada.',
+      adjustment:'Toda conversa deve terminar com decisão, ação ou próximo passo definido. Quando houver continuidade, combine o que acontece, quem faz e quando a conversa volta.'
+    }
+  };
+
+  function phaseFor(step){
+    if (step <= 1) return 'Entrada';
+    if (step <= 6) return 'Contexto';
+    if (step <= 16) return 'Conversa';
+    if (step <= 22) return 'Objeções';
+    if (step <= 24) return 'Análise';
+    if (step === 25) return 'Resultado';
+    return 'Sistema';
+  }
+
+  function updateChrome(){
+    const progress = Math.max(0, Math.min(100, (state.step / (steps.length-1))*100));
+    progressBar.style.width = `${progress}%`;
+    progressWrap.hidden = state.step === 0;
+    phaseLabel.textContent = phaseFor(state.step);
+    bottomNav.hidden = state.step === 0 || state.step >= 27;
+    backButton.disabled = state.step <= 0;
+  }
+
+  function go(next, {push=true}={}){
+    state.step = Math.max(0, Math.min(steps.length-1, next));
+    saveState();
+    if (push) history.pushState({bkStep:state.step},'',`#etapa-${state.step+1}`);
+    render();
+  }
+
+  function answerQuestion(question, value, customText=''){
+    state.answers[question.id] = value;
+    if (question.id === 'sellType') {
+      state.context.sellType = value;
+      if (value === 'outro') state.context.sellTypeOther = customText.trim();
+    }
+    if (question.id === 'channel') state.context.channel = value;
+    if (question.id === 'ticket') state.context.ticket = value;
+    saveState();
+    trackAction('BK_Answer',{question_id:question.id,answer:value});
+    if (question.completeEvent) fireOnce(question.completeEvent,{question_id:question.id});
+    setTimeout(() => go(state.step+1), 150);
+  }
+
+  function renderQuestion(question){
+    const current = state.answers[question.id];
+    screen.innerHTML = `<div class="bk-frame">
+      <div class="bk-question-head"><div class="bk-kicker">${escapeHtml(question.kicker)}</div><h1 class="bk-question">${escapeHtml(question.question)}</h1><p class="bk-helper">${escapeHtml(question.helper)}</p></div>
+      <div class="bk-options" role="group" aria-label="${escapeHtml(question.question)}">
+        ${question.options.map((option,i)=>`<button type="button" class="bk-option" data-value="${escapeHtml(option.value)}" aria-pressed="${current===option.value}"><span class="bk-letter">${String.fromCharCode(65+i)}</span><span>${escapeHtml(option.label)}</span><span class="bk-arrow">→</span></button>`).join('')}
+      </div>
+      ${question.allowOther ? `<div class="bk-other" id="otherBox" ${current==='outro'?'':'hidden'}><label for="otherInput" class="bk-helper">Descreva em poucas palavras</label><input class="bk-other-input" id="otherInput" maxlength="80" placeholder="${escapeHtml(question.otherPlaceholder||'Outro')}"><button class="bk-btn bk-btn-primary" id="otherContinue" type="button">Continuar</button></div>`:''}
+    </div>`;
+    screen.querySelectorAll('.bk-option').forEach(btn => btn.addEventListener('click',()=>{
+      const value = btn.dataset.value;
+      screen.querySelectorAll('.bk-option').forEach(b => b.setAttribute('aria-pressed','false'));
+      btn.setAttribute('aria-pressed','true');
+      if (question.allowOther && value === 'outro') {
+        state.answers[question.id] = value; saveState();
+        const box = document.getElementById('otherBox'); box.hidden=false; document.getElementById('otherInput').focus();
+      } else answerQuestion(question,value);
+    }));
+    if (question.allowOther) {
+      const input = document.getElementById('otherInput');
+      if (current==='outro' && state.context.sellTypeOther) input.value = state.context.sellTypeOther;
+      document.getElementById('otherContinue').addEventListener('click',()=>{
+        const value=input.value.trim();
+        if (!value){ input.focus(); return; }
+        answerQuestion(question,'outro',value);
+      });
+    }
+  }
+
+  function render(){
+    updateChrome();
+    screen.classList.remove('bk-screen'); void screen.offsetWidth; screen.classList.add('bk-screen');
+    const step = steps[state.step];
+    if (!step) return;
+    if (step.type === 'question') renderQuestion(step);
+    else renderNarrative(step.type);
+    main.focus({preventScroll:true});
+    window.scrollTo({top:0,behavior:'instant'});
+  }
+
+  function button(label, id, extra=''){ return `<button type="button" class="bk-btn bk-btn-primary" id="${id}" ${extra}>${label}</button>`; }
+  function continueHandler(id, next=state.step+1){ document.getElementById(id)?.addEventListener('click',()=>go(next)); }
+
+  function renderNarrative(type){
+  
