@@ -1,0 +1,54 @@
+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" alt="Mockup canônico final do bundle completo do Sistema Bypass Neural"><p class="bk-footer-note">O sistema ensina comunicação estratégica e condução comercial. O cliente mantém autonomia para decidir, comparar, recusar ou encerrar a conversa. Resultados dependem de aplicação, oferta, mercado e contexto.</p></div></div></div>`;
+      document.getElementById('checkoutButton').addEventListener('click',()=>{
+        trackAction('BK_CTA_Click',{location:'offer',primary_axis:r.primary});
+        trackAction('InitiateCheckout',{value:37,currency:'BRL',primary_axis:r.primary},true);
+        go(27);
+      });
+      return;
+    }
+    if (type === 'checkout') {
+      const url = buildCheckoutUrl();
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-card bk-redirect"><div class="bk-kicker" style="justify-content:center">Checkout seguro</div><h1 class="bk-title-medium">Abrindo o checkout oficial do Sistema Bypass Neural.</h1><p class="bk-copy" style="margin:auto">Se o redirecionamento não ocorrer automaticamente, use o botão abaixo.</p><div class="bk-actions" style="justify-content:center"><a class="bk-btn bk-btn-primary" href="${escapeHtml(url)}" id="manualCheckout">CONTINUAR PARA O PAGAMENTO</a></div><p class="bk-micro">Os parâmetros de origem da sua sessão foram preservados quando disponíveis.</p></div></div>`;
+      setTimeout(()=>{ if (state.step===28) location.href=url; },650);
+      return;
+    }
+  }
+
+  function buildCheckoutUrl(){
+    const url = new URL(CHECKOUT_BASE);
+    TRACK_PARAMS.forEach(key => {
+      const value = state.params[key];
+      if (value && !url.searchParams.has(key)) url.searchParams.set(key,value);
+    });
+    if (!url.searchParams.has('sck')) {
+      const r = state.result || calculateResult();
+      url.searchParams.set('sck',`bk_${r.primary}_${state.context.channel||'geral'}`);
+    }
+    return url.toString();
+  }
+
+  function restart(){
+    const params = {...state.params};
+    state = freshState(params);
+    saveState();
+    history.replaceState({bkStep:0},'',location.pathname+location.search+'#etapa-1');
+    render();
+  }
+
+  backButton.addEventListener('click',()=>{ if (state.step > 0) go(state.step-1); });
+  brandHome.addEventListener('click',(e)=>{ e.preventDefault(); go(0); });
+  window.addEventListener('popstate',(event)=>{
+    const step = Number.isInteger(event.state?.bkStep) ? event.state.bkStep : Math.max(0,Number(location.hash.replace('#etapa-',''))-1 || 0);
+    state.step = Math.max(0,Math.min(steps.length-1,step)); saveState(); render();
+  });
+
+  const hashStep = Number(location.hash.replace('#etapa-',''));
+  if (Number.isFinite(hashStep) && hashStep >= 1 && hashStep <= steps.length) state.step = hashStep-1;
+  history.replaceState({bkStep:state.step},'',`#etapa-${state.step+1}`);
+  saveState();
+  render();
+})();
+
+</script>
+</body>
+</html>
