@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "date": "2026-08-11",
+  "logic_tests": {
+    "passed": 33,
+    "total": 33
+  },
+  "production_chunks": {
+    "expected": 9,
+    "verified": 9
+  },
+  "critical_identifiers": {
+    "pixel": "341131507668987",
+    "storage": "bypassBK_v1",
+    "checkout": "https://pay.hotmart.com/A98424225S?bid=1773208589822&checkoutMode=10&off=njqo49xj"
+  },
+  "predeploy_fixes": [
+    "result_to_bridge_navigation",
+    "checkout_auto_redirect_step"
+  ],
+  "public_visual_qa": "pending_pages_url"
+}
