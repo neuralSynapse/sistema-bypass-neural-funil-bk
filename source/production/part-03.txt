@@ -1,0 +1,82 @@
+   const sell = state.context.sellType === 'outro' ? (state.context.sellTypeOther || 'Outro') : (labels.sellType[state.context.sellType] || 'Sua oferta');
+    const channel = labels.channel[state.context.channel] || 'Seu canal';
+    const ticket = labels.ticket[state.context.ticket] || 'Seu ticket';
+    const goal = labels.goal[state.answers.goal] || 'conduzir melhor as próximas conversas';
+
+    if (type === 'entry') {
+      fireOnce('BK_ViewEntry',{pixel_id:META_PIXEL_ID});
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-kicker">Diagnóstico de condução comercial</div><h1 class="bk-title">EM QUAL PONTO DA SUA CONVERSA <span>A VENDA COMEÇA A ESCAPAR?</span></h1><p class="bk-lead">Analise como você abre, diagnostica, apresenta valor, responde objeções e conduz a decisão. No final, você recebe o principal ponto de ruptura da sua conversa e o primeiro ajuste que pode aplicar.</p><div class="bk-actions">${button('DESCOBRIR MEU PONTO DE RUPTURA','startDiagnostic')}</div><p class="bk-micro">Sem cadastro e sem e-mail antes do resultado. A leitura é qualitativa e baseada diretamente nas suas respostas.</p></div>`;
+      document.getElementById('startDiagnostic').addEventListener('click',()=>{
+        state.startedAt = state.startedAt || new Date().toISOString(); saveState();
+        fireOnce('BK_StartDiagnostic'); go(1);
+      });
+      return;
+    }
+    if (type === 'editorial1') {
+      screen.innerHTML = `<div class="bk-frame"><article class="bk-card bk-editorial"><div class="bk-editorial-label">Análise de condução comercial</div><h1 class="bk-title-medium">A venda raramente “some do nada”. Ela costuma perder direção antes.</h1><p class="bk-copy">O cliente pode chegar ao preço, dizer “vou pensar” ou desaparecer depois da proposta. Só que o ponto de ruptura frequentemente aconteceu antes: contexto insuficiente, valor desconectado, objeção respondida cedo demais ou ausência de próximo passo.</p><p class="bk-quote">O diagnóstico não procura uma frase mágica. Procura o momento em que a sequência deixa de ajudar a decisão.</p><div class="bk-actions">${button('ANALISAR MINHA CONVERSA','editorialContinue')}</div></article></div>`;
+      continueHandler('editorialContinue'); return;
+    }
+    if (type === 'contextSummary') {
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-kicker">Primeira síntese</div><h1 class="bk-title-medium">Agora o diagnóstico pode falar a língua da sua operação.</h1><p class="bk-copy">Você vende <strong>${escapeHtml(sell)}</strong>, principalmente por <strong>${escapeHtml(channel)}</strong>, com ticket de <strong>${escapeHtml(ticket)}</strong>. Isso personaliza exemplos e recomendações, mantendo a mesma lógica de classificação.</p><div class="bk-summary-grid"><div class="bk-summary-item"><small>Oferta</small><strong>${escapeHtml(sell)}</strong></div><div class="bk-summary-item"><small>Canal</small><strong>${escapeHtml(channel)}</strong></div><div class="bk-summary-item"><small>Ticket</small><strong>${escapeHtml(ticket)}</strong></div></div><div class="bk-actions">${button('CONTINUAR PARA A CONVERSA','summaryContinue')}</div></div>`;
+      continueHandler('summaryContinue'); return;
+    }
+    if (type === 'prepare') {
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-card"><div class="bk-kicker">Preparação</div><h1 class="bk-title-medium">Pense no padrão que se repete, não na sua melhor venda do ano.</h1><p class="bk-lead">Nas próximas telas, escolha o comportamento que mais aparece quando a conversa está sob pressão. Você pode voltar e alterar qualquer resposta.</p><div class="bk-insights"><div class="bk-insight"><strong>1. Ordem</strong><span>O que acontece antes de você apresentar.</span></div><div class="bk-insight"><strong>2. Reação</strong><span>O que você faz quando surge hesitação.</span></div><div class="bk-insight"><strong>3. Continuidade</strong><span>Como a conversa termina e volta.</span></div></div><div class="bk-actions">${button('COMEÇAR A ANÁLISE','prepareContinue')}</div></div></div>`;
+      continueHandler('prepareContinue'); return;
+    }
+    if (type === 'partialSynthesis') {
+      const opening = state.answers.opening;
+      const diagnosis = state.answers.diagnosis;
+      let line = 'Sua abertura e seu diagnóstico já mostram como você organiza informação antes de propor.';
+      if (opening === 'produto_primeiro' || diagnosis === 'explica_primeiro') line = 'Até aqui, o sinal mais forte é que a solução entra cedo demais, antes de a decisão estar suficientemente mapeada.';
+      else if (diagnosis === 'completo' && opening === 'contexto_primeiro') line = 'Até aqui, sua base está bem estruturada: você cria contexto e entende o problema antes de propor.';
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-kicker">Leitura parcial</div><h1 class="bk-title-medium">A conversa já começou a revelar onde perde ou preserva direção.</h1><p class="bk-lead">${escapeHtml(line)}</p><p class="bk-copy">Agora vamos observar valor, preço e a maneira como você reage quando a decisão fica menos confortável.</p><div class="bk-actions">${button('CONTINUAR','partialContinue')}</div></div>`;
+      continueHandler('partialContinue'); return;
+    }
+    if (type === 'editorial2') {
+      const focus = labels.goal[state.answers.goal] || 'melhorar sua condução';
+      screen.innerHTML = `<div class="bk-frame"><article class="bk-card bk-editorial"><div class="bk-editorial-label">Leitura aplicada ao seu objetivo</div><h1 class="bk-title-medium">Você quer ${escapeHtml(focus)}. O ponto não é adicionar mais fala.</h1><p class="bk-copy">Quando uma conversa trava, o reflexo comum é explicar, justificar, insistir ou mandar mais informação. Só que quantidade de fala não corrige sequência. Uma resposta forte começa identificando o que falta ficar claro e só depois escolhe o movimento.</p><p class="bk-quote">Condução não é pressão. É reduzir improvisação sem retirar a autonomia do cliente.</p><div class="bk-actions">${button('VER O MECANISMO POR TRÁS','editorial2Continue')}</div></article></div>`;
+      continueHandler('editorial2Continue'); return;
+    }
+    if (type === 'authority') {
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-kicker">Base do sistema</div><h1 class="bk-title-medium">O Bypass foi estruturado como treinamento de comunicação estratégica, com a autonomia do cliente preservada em toda a conversa.</h1><p class="bk-lead"><strong>Renan Menussi</strong> estruturou o Sistema Bypass Neural a partir de experiência em comunicação estratégica, vendas, neuromarketing aplicado e comportamento do consumidor. O núcleo operacional é o protocolo IPAC: <strong>Identificar, Perguntar, Apresentar e Conduzir.</strong></p><p class="bk-copy">A função do método é organizar o que observar, o que esclarecer, como conectar valor e como terminar a conversa com direção, sem substituir contexto ou autonomia de decisão.</p><div class="bk-ipac"><div class="bk-ipac-step"><b>I</b><strong>Identificar</strong><span>Sinais, contexto e ponto de decisão.</span></div><div class="bk-ipac-step"><b>P</b><strong>Perguntar</strong><span>Problema, impacto, prioridade e critério.</span></div><div class="bk-ipac-step"><b>A</b><strong>Apresentar</strong><span>Valor ligado ao que foi declarado.</span></div><div class="bk-ipac-step"><b>C</b><strong>Conduzir</strong><span>Objeção, decisão e próximo passo.</span></div></div><div class="bk-actions">${button('VER ISSO NUMA CONVERSA','authorityContinue')}</div></div>`;
+      continueHandler('authorityContinue'); return;
+    }
+    if (type === 'practiceProof') {
+      screen.innerHTML = `<div class="bk-frame-wide"><div class="bk-kicker">Demonstração prática</div><h1 class="bk-title-medium">A mesma proposta pode terminar em espera ou em processo.</h1><div class="bk-demo"><div class="bk-demo-card"><div class="bk-demo-label">Conversa sem direção</div><div class="bk-message">“Vou te mandar a proposta com todos os detalhes.”</div><div class="bk-message client">“Beleza. Vou analisar e depois te retorno.”</div><div class="bk-message">“Perfeito, fico aguardando.”</div><p class="bk-copy">A conversa termina sem critério, prazo ou próximo movimento.</p></div><div class="bk-demo-card good"><div class="bk-demo-label">Conversa estruturada</div><div class="bk-message">“Antes de montar a proposta, qual resultado precisa ficar claro para essa decisão fazer sentido?”</div><div class="bk-message client">“Preciso entender o retorno e como isso entra na rotina.”</div><div class="bk-message">“Vou organizar nesses dois pontos. Podemos revisar juntos amanhã às 16h?”</div><p class="bk-copy">A proposta nasce ligada ao critério real e já possui continuidade.</p></div></div><div class="bk-actions">${button('CONTINUAR','proofContinue')}</div></div>`;
+      continueHandler('proofContinue'); return;
+    }
+    if (type === 'mechanism') {
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-card"><div class="bk-kicker">Sequência de condução estruturada</div><h1 class="bk-title-medium">O mecanismo não substitui leitura de contexto. Ele impede que cada conversa comece do zero.</h1><p class="bk-copy">A partir daqui, o diagnóstico entra nas situações que mais expõem a estrutura: objeção de preço, “vou pensar”, outro decisor, timing, follow-up e encerramento.</p><div class="bk-actions">${button('TESTAR MINHA CONDUÇÃO','mechanismContinue')}</div></div></div>`;
+      continueHandler('mechanismContinue'); return;
+    }
+    if (type === 'processing') {
+      state.result = calculateResult();
+      state.completedAt = new Date().toISOString();
+      saveState();
+      fireOnce('BK_DiagnosticComplete',{primary_axis:state.result.primary,secondary_axis:state.result.secondary,structure_level:state.result.level[0]});
+      screen.innerHTML = `<div class="bk-frame"><div class="bk-card bk-processing"><div><div class="bk-spinner" aria-hidden="true"></div><div class="bk-kicker" style="justify-content:center">Organizando sua conversa</div><h1 class="bk-title-medium">Cruzando abertura, diagnóstico, valor, objeções e continuidade.</h1><p class="bk-copy" style="margin:auto">A classificação é calculada diretamente das suas respostas, com regras determinísticas e sem porcentagens apresentadas como medida científica.</p></div></div></div>`;
+      setTimeout(()=>{ if(state.step===23) go(24); },900); return;
+    }
+    if (type === 'result') {
+      if (!state.result) state.result = calculateResult();
+      saveState();
+      const r = state.result;
+      const copy = r.noDominant ? {
+        where:'Suas respostas não mostram uma ruptura clara entre diagnóstico, valor, objeções e fechamento.',
+        consequence:'A sequência já está relativamente organizada. O próximo ganho tende a vir de refinamento e consistência, não de corrigir uma falha estrutural evidente.',
+        adjustment:`Use ${AXIS_LABELS[r.primary].toLowerCase()} como eixo de otimização nas próximas conversas e registre o que muda na prática.`
+      } : resultCopy[r.primary];
+      const mans = r.noDominant ? ['Você preserva contexto antes de apresentar.','As objeções são investigadas antes da resposta.','As conversas tendem a terminar com decisão ou continuidade definida.'] : (r.manifestations.length ? r.manifestations : ['O padrão aparece de forma mais leve nas respostas, mas ainda é o eixo que mais pede atenção.']);
+      const resultBadge = r.noDominant ? 'Nenhuma ruptura dominante' : 'Seu principal ponto de ruptura';
+      const resultTitle = r.noDominant ? 'ESTRUTURA CONSOLIDADA' : AXIS_LABELS[r.primary];
+      const secondaryLine = r.noDominant ? `Ponto de otimização sugerido: <strong>${AXIS_LABELS[r.primary]}</strong>` : `Ponto secundário observado: <strong>${AXIS_LABELS[r.secondary]}</strong>`;
+      fireOnce('BK_ResultViewed',{primary_axis:r.primary,secondary_axis:r.secondary,structure_level:r.level[0],no_dominant:r.noDominant});
+      screen.innerHTML = `<div class="bk-frame-wide"><div class="bk-result-badge">${resultBadge}</div><h1 class="bk-result-title">${resultTitle}</h1><p class="bk-result-secondary">${secondaryLine}</p><div class="bk-result-grid"><div class="bk-result-panel"><h3>${r.noDominant?'Leitura da estrutura':'Onde sua conversa perde direção'}</h3><p>${escapeHtml(copy.where)}</p><h3 style="margin-top:22px">Como isso aparece</h3><ul>${mans.map(m=>`<li>${escapeHtml(m)}</li>`).join('')}</ul></div><div class="bk-result-panel"><h3>Consequência</h3><p>${escapeHtml(copy.consequence)}</p><div class="bk-level" style="margin-top:20px"><div class="bk-level-mark">${AXIS_SHORT[r.primary].slice(0,1)}</div><div><small>Estrutura estimada</small><strong>${escapeHtml(r.level[0])}</strong><p style="margin:4px 0 0;color:#8e877f;font-size:.8rem">${escapeHtml(r.level[1])}</p></div></div></div></div><div class="bk-adjust"><strong>PRIMEIRO AJUSTE</strong>${escapeHtml(copy.adjustment)}</div><p class="bk-copy">Contexto aplicado: ${escapeHtml(sell)} por ${escapeHtml(channel)}, ticket ${escapeHtml(ticket)}. Isso ajusta os exemplos, não altera a lógica de classificação.</p><div class="bk-actions">${button('VER COMO ESTRUTURAR ESSE PONTO','resultContinue')}<button class="bk-restart" id="restartDiagnostic" type="button">Reiniciar diagnóstico</button></div></div>`;
+      document.getElementById('resultContinue').addEventListener('click',()=>go(26));
+      document.getElementById('restartDiagnostic').addEventListener('click',restart);
+      return;
+    }
+    if (type === 'bridge') {
+      const r = state.result || calculateResult();
+      screen.innerHTML = `<div class="bk-frame-wide"><div class="bk-bridge"><div class="bk-kicker">Do diagnóstico para a execução</div><h1 class="bk-title-medium">SEU PROBLEMA NÃO EXIGE FALAR MAIS. <span class="bk-accent">EXIGE CONDUZIR MELHOR.</span></h1><p class="bk-lead"><strong>SEQUÊNCIA DE CONDUÇÃO ESTRUTURADA.</strong> O diagnóstico mostrou onde sua conversa perde direção. O Sistema Bypass Neural organiza os momentos anteriores e posteriores a esse ponto para reduzir improvisação.</p><div class="bk-gallery"><figure clas
