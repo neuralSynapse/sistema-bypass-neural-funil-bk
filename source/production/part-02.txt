@@ -189,4 +189,4 @@ toAberto:'Você entrega informação, mas não combina como e quando a decisão 
   function continueHandler(id, next=state.step+1){ document.getElementById(id)?.addEventListener('click',()=>go(next)); }
 
   function renderNarrative(type){
-  
+ 
